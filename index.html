@@ -50,6 +50,10 @@ body{
 }
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outline-offset:4px}
+/* headings that receive focus programmatically (screen changes) carry no ring */
+[tabindex="-1"]:focus{outline:none}
+/* text for screen readers only */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 /* light streak: horizontal beam, fades to black above and below */
 .streak{
@@ -255,7 +259,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
 .app-tile b{font-family:var(--mono);font-weight:500;font-size:11px;line-height:1.2;color:var(--ssip-text)}
 .app-tile .n{font-family:var(--mono);font-size:10px;color:var(--ssip-muted)}
 .app-tile.off{opacity:0;filter:grayscale(1)}
-.app-tile.off.in{opacity:.45}
+/* locked tiles dim the icon, not the text, so the label keeps 4.5:1 contrast */
+.app-tile.off.in{opacity:1}
+.app-tile.off b{color:var(--ssip-muted)}
+.app-tile.off .tile-icon{opacity:.4}
 .app-tile.on{border-color:var(--ssip-accent);background:var(--ssip-card)}
 .app-tile.on .n{color:var(--ssip-accent)}
 @keyframes rise{to{transform:none;opacity:1}}
@@ -282,7 +289,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
   .rules{display:none}
 }
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  *,*::before,*::after{
+    transition-duration:.01ms!important;transition-delay:0s!important;
+    animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;
+  }
   .cursor{animation:none}
 }
 </style>
@@ -306,18 +316,19 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
   <!-- Screen 1: start -->
   <section class="screen start" id="s-start">
     <div class="eyebrow">A 60-second game</div>
-    <h1 class="hero"><span class="prompt">&gt;_</span>Kill the<br><span class="o">busywork</span><span class="cursor" aria-hidden="true"></span></h1>
+    <h1 class="hero"><span class="prompt" aria-hidden="true">&gt;_</span>Kill the<br><span class="o">busywork</span><span class="cursor" aria-hidden="true"></span></h1>
     <p class="lede">Every company runs on workarounds nobody chose. Swipe through them and see which Strategy app makes each one disappear, <b>all on one platform</b>.</p>
     <div class="rules">
       <div class="rule kill"><b>&larr; Kill</b><span>Swipe left. It goes, and you see what replaces it.</span></div>
       <div class="rule"><b>Keep &rarr;</b><span>Swipe right if you secretly love it.</span></div>
     </div>
     <div class="apps-row" id="apps-row"></div>
-    <button class="cta" id="startBtn"><span class="g">&#x276F;</span>Start swiping<span class="g">&#x21B5;</span></button>
+    <button class="cta" id="startBtn"><span class="g" aria-hidden="true">&#x276F;</span>Start swiping<span class="g" aria-hidden="true">&#x21B5;</span></button>
   </section>
 
   <!-- Screen 2: swipe -->
   <section class="screen game" id="s-game" hidden>
+    <h1 class="sr-only">Kill the busywork</h1>
     <div class="stage" id="stage"></div>
     <div class="controls" id="controls">
       <div class="choice" id="choice">
@@ -330,7 +341,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
         <span class="ctl-label" aria-hidden="true">KEEP</span>
       </div>
       </div>
-      <button class="cta secondary" id="nextBtn" type="button" hidden><span class="g">&#x276F;</span><span id="nextLabel">Next</span><span class="g">&#x21B5;</span></button>
+      <button class="cta secondary" id="nextBtn" type="button" hidden><span class="g" aria-hidden="true">&#x276F;</span><span id="nextLabel">Next</span><span class="g" aria-hidden="true">&#x21B5;</span></button>
     </div>
   </section>
 
@@ -345,8 +356,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
     <div class="persona" id="persona">
       <div class="persona-top"><span id="pid">PERSONA_01</span><span id="pdate"></span></div>
       <div class="persona-glyph"><span class="ms" id="pglyph" aria-hidden="true">bolt</span></div>
-      <div class="you">You are</div>
-      <h2 id="pname">The Pipeline Purist</h2>
+      <div class="you" aria-hidden="true">You are</div>
+      <h2 id="pname" tabindex="-1">The Pipeline Purist</h2>
       <p id="pdesc"></p>
       <div class="pstats">
         <div><b id="statKilled">0/9</b><span>Killed</span></div>
@@ -360,13 +371,15 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
       <div class="stack" id="stackTiles"></div>
     </div>
     <div class="actions">
-      <button class="cta" id="againBtn"><span class="g">&#x276F;</span>Play again<span class="g">&#x21B5;</span></button>
-      <a class="ghost-link" href="https://software.strategy.com/ssis" target="_blank" rel="noopener">See all Strategy SI apps &rarr;</a>
+      <button class="cta" id="againBtn"><span class="g" aria-hidden="true">&#x276F;</span>Play again<span class="g" aria-hidden="true">&#x21B5;</span></button>
+      <a class="ghost-link" href="https://software.strategy.com/ssis" target="_blank" rel="noopener">See all Strategy SI apps <span aria-hidden="true">&rarr;</span><span class="sr-only">(opens in a new tab)</span></a>
     </div>
   </section>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- announces each card and each kill to screen readers -->
+<div class="sr-only" id="sr" aria-live="polite"></div>
 
 <script>
 (function(){
@@ -474,9 +487,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
           </div>
           <div class="eyebrow">${a.short}</div>
           <h2>${c.pain}</h2>
-          <div class="hint"><span>&larr; kill</span><span>keep &rarr;</span></div>
-          <div class="stamp kill">KILL</div>
-          <div class="stamp keep">KEEP</div>
+          <div class="hint" aria-hidden="true"><span>&larr; kill</span><span>keep &rarr;</span></div>
+          <div class="stamp kill" aria-hidden="true">KILL</div>
+          <div class="stamp keep" aria-hidden="true">KEEP</div>
         </div>
         <div class="face back">
           <div class="row">
@@ -501,6 +514,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
       if (idx + k >= total) continue;
       const under = document.createElement('div');
       under.className = `card under under-${k}`;
+      under.setAttribute('aria-hidden', 'true');
       under.innerHTML = cardHTML(deck[idx+k], idx+k+1, total);
       stage.appendChild(under);
     }
@@ -512,6 +526,16 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
     $('choice').hidden = false;
     $('nextBtn').hidden = true;
     busy = false;
+    const c = deck[idx];
+    announce(`Card ${idx+1} of ${total}. ${APPS[c.app].short}: ${c.pain}`);
+    // focus was on a control that just disappeared (Start or Next): hand it to Kill
+    if (!$('choice').contains(document.activeElement)) $('killBtn').focus({preventScroll:true});
+  }
+  function announce(msg){
+    const sr = $('sr');
+    sr.textContent = '';
+    // a fresh text node after a tick makes repeated messages read again
+    setTimeout(() => { sr.textContent = msg; }, 60);
   }
 
   function attachDrag(el){
@@ -550,6 +574,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
     if (choice === 'kill'){
       el.style.transform = '';
       el.querySelector('.stamp.kill').style.opacity = 1;
+      announce(`Killed. Replaced by ${APPS[deck[idx].app].name}: ${deck[idx].fix}`);
       $('choice').hidden = true;
       setTimeout(() => {
         el.classList.add('flipped');
@@ -639,7 +664,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
       d.textContent = l.t;
       term.appendChild(d);
     }, i * step));
-    setTimeout(() => { if (!screens.reveal.hidden) show('result'); }, lines.length * step + (fast ? 200 : 700));
+    setTimeout(() => {
+      if (screens.reveal.hidden) return;
+      show('result');
+      // screen readers start the result at the persona name ("You are" is visual only)
+      $('pname').setAttribute('aria-label', `You are ${$('pname').textContent}`);
+      $('pname').focus({preventScroll:true});
+    }, lines.length * step + (fast ? 200 : 700));
   }
 
   function start(){
