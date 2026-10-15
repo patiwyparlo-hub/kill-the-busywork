@@ -9,7 +9,7 @@ Uczestnik skanuje kod QR i gra w przeglądarce. Tylko po angielsku.
 
 ## Ustalenia (15.10.2026)
 
-- Forma: web app / PWA, bez publikacji w sklepach.
+- Forma: web app, bez publikacji w sklepach ([decyzja 0001](docs/decisions/0001-web-app.md)).
 - Ekran wyniku: dwa przyciski, „Play again” i „See all Strategy SI apps” (→ https://software.strategy.com/ssis).
 - Bez licznika czasu. „A 60-second game” to tylko orientacyjny czas gry.
 - Kody QR przygotowuje konferencja, nie ten projekt.
