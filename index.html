@@ -7,10 +7,18 @@
 <meta name="description" content="A 60-second game: kill everyday busywork and see which Strategy SI app replaces it.">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}</style>
 <title>Kill the Busywork</title>
+<link rel="preload" href="fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/HostGrotesk-VariableFont_wght.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block">
+<style>
+/* brand faces: the SSIS Design System font files, subset to Latin and converted to woff2 */
+@font-face{font-family:"JetBrains Mono";src:url(fonts/JetBrainsMono-Regular.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/JetBrainsMono-Medium.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/JetBrainsMono-Bold.woff2) format("woff2");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Host Grotesk";src:url(fonts/HostGrotesk-VariableFont_wght.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+</style>
 <style>
 /* Layout: one-screen mobile game on the SSIS design system. Light-streak band on top, masthead with the Strategy SI lockup, a centred card stage, controls under the card. Dark-first, single look. */
 :root{
@@ -72,7 +80,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
 .progress .bar{width:clamp(70px,18vw,160px);height:3px;background:var(--ssip-line);overflow:hidden}
 .progress .bar i{display:block;height:100%;width:0;background:var(--ssip-orange);transition:width .3s ease}
 
-.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--ssip-sky)}
+.eyebrow{font-family:var(--mono);font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--ssip-sky)}
 .eyebrow::before{content:"\203A  ";color:var(--ssip-orange);white-space:pre}
 .label{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ssip-accent)}
 
@@ -125,16 +133,16 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outlin
 }
 .chip .ms{font-size:18px}
 
-/* primary CTA: square, orange, black text, lifts onto a blue offset shadow */
+/* primary CTA: square, orange, black text, lifts 2px onto a 4px ssip-blue offset shadow */
 .cta{
   border:0;border-radius:0;padding:14px 24px;font-family:var(--mono);font-weight:500;font-size:16px;line-height:24px;
   background:var(--ssip-orange);color:var(--ssip-black);display:inline-flex;gap:12px;align-items:center;
   transition:transform .14s ease, box-shadow .14s ease, background-color .14s ease;
 }
-.cta:hover{background:var(--ssip-orange-hover);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ssip-accent)}
+.cta:hover{background:var(--ssip-orange-hover);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ssip-blue)}
 .cta:active{background:var(--ssip-orange-press);color:var(--ssip-white);transform:none;box-shadow:none}
 .cta .g{opacity:.7}
-/* secondary: surface fill, hairline border, same cyan lift on hover */
+/* secondary: surface fill, hairline border, same lift on hover with a cyan border */
 .cta.secondary{background:var(--ssip-surface);color:var(--ssip-text);border:1px solid var(--ssip-line)}
 .cta.secondary:hover{background:var(--ssip-surface);border-color:var(--ssip-accent)}
 .cta.secondary:active{background:var(--ssip-card);color:var(--ssip-text)}
