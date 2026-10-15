@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="A 60-second game: kill everyday busywork and see which Strategy SI app replaces it.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}</style>
+<title>Kill the Busywork</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block">
+<style>
+/* Layout: one-screen mobile game on the SSIS design system. Light-streak band on top, masthead with the Strategy SI lockup, a centred card stage, controls under the card. Dark-first, single look. */
+:root{
+  --ssip-black:#000000;
+  --ssip-ground:#101112;
+  --ssip-surface:#17181a;
+  --ssip-card:#2f2d2d;
+  --ssip-orange:#fa660f;
+  --ssip-orange-hover:#ff8a3d;
+  --ssip-orange-press:#c2450a;
+  --ssip-orange-tint:#1e0c02;
+  --ssip-accent:#09e8e4;
+  --ssip-icon-blue:#1585da;
+  --ssip-white:#ffffff;
+  --ssip-text:#e7e8e1;
+  --ssip-muted:#a0a1a5;
+  --ssip-line:#323438;
+  --ssip-legacy-line:#4e4e4e;
+  --ssip-blue:#152fda;
+  --ssip-sky:#6fb9ec;
+  --ssip-streak-teal:#06a2a0;
+  --ssip-streak-mid:#0a5e75;
+  --ssip-streak-blue:#0e2c56;
+  --radius:10px;
+  --radius-icon:7px;
+  --mono:"JetBrains Mono", ui-monospace, monospace;
+  --sans:"Host Grotesk", system-ui, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  margin:0;background:var(--ssip-black);color:var(--ssip-text);
+  font-family:var(--sans);font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;overflow:hidden;touch-action:manipulation;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--ssip-accent);outline-offset:4px}
+
+/* light streak: horizontal beam, fades to black above and below */
+.streak{
+  position:fixed;left:0;right:0;top:0;height:150px;pointer-events:none;z-index:0;
+  background:linear-gradient(90deg,var(--ssip-streak-teal),var(--ssip-streak-mid) 50%,var(--ssip-streak-blue));
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.55) 38%,rgba(0,0,0,.55) 46%,transparent 100%);
+          mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.55) 38%,rgba(0,0,0,.55) 46%,transparent 100%);
+  opacity:.75;
+}
+
+.app{
+  position:relative;z-index:1;height:100%;display:grid;grid-template-rows:auto 1fr;
+  padding-inline:16px;max-width:1100px;margin:0 auto;
+}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:20px 12px}
+.logo{height:26px;width:auto;display:block}
+.home{background:none;border:0;padding:4px 0;margin:-4px 0;display:block}
+.meta{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ssip-white)}
+.progress{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--ssip-accent)}
+.progress .bar{width:clamp(70px,18vw,160px);height:3px;background:var(--ssip-line);overflow:hidden}
+.progress .bar i{display:block;height:100%;width:0;background:var(--ssip-orange);transition:width .3s ease}
+
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--ssip-sky)}
+.eyebrow::before{content:"\203A  ";color:var(--ssip-orange);white-space:pre}
+.label{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ssip-accent)}
+
+.screen{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;min-height:0;padding-block:16px 28px}
+
+/* Material Symbols glyph with the brand cyan-to-blue gradient */
+.ms{
+  font-family:"Material Symbols Outlined";font-weight:400;font-style:normal;line-height:1;letter-spacing:normal;
+  text-transform:none;white-space:nowrap;direction:ltr;-webkit-font-feature-settings:"liga";font-feature-settings:"liga";
+  font-variation-settings:"FILL" 0,"wght" 400,"GRAD" 0,"opsz" 24;display:inline-block;
+}
+.grad{background:linear-gradient(135deg,var(--ssip-accent),var(--ssip-icon-blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* icon tile: 7px radius, cyan-to-blue stroke, translucent fill, one glyph */
+.tile-icon{
+  width:56px;height:56px;border-radius:var(--radius-icon);display:grid;place-items:center;flex:none;
+  border:3px solid transparent;
+  background:
+    linear-gradient(135deg,rgba(74,237,255,.32),rgba(32,66,169,.26)) padding-box,
+    linear-gradient(var(--ssip-black),var(--ssip-black)) padding-box,
+    linear-gradient(135deg,var(--ssip-accent),var(--ssip-icon-blue)) border-box;
+}
+.tile-icon .ms{font-size:30px}
+
+/* ---------- Start ---------- */
+.start{align-items:center;text-align:center;max-width:780px;margin:0 auto;width:100%}
+.start .lede{margin-inline:auto}
+.start .rules{width:100%;text-align:left}
+.start .apps-row{justify-content:center}
+.hero{
+  font-family:var(--mono);font-weight:400;text-transform:uppercase;letter-spacing:-.02em;line-height:1.02;margin:0;
+  font-size:clamp(44px,10.5vw,104px);color:var(--ssip-white);
+}
+.hero .o{color:var(--ssip-orange)}
+.hero .prompt{color:var(--ssip-accent)}
+.cursor{display:inline-block;width:.55em;height:.9em;background:var(--ssip-orange);vertical-align:-.08em;margin-left:.06em;animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.lede{font-size:clamp(17px,2.2vw,20px);line-height:1.6;color:#b5b6bc;max-width:40ch;margin:0}
+.lede b{color:var(--ssip-white);font-weight:500}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:15px;max-width:540px}
+.rule{border:1px solid var(--ssip-line);background:var(--ssip-surface);border-radius:var(--radius);padding:15px;display:flex;flex-direction:column;gap:2px}
+.rule b{font-family:var(--mono);font-weight:500;font-size:14px}
+.rule.kill{border-color:var(--ssip-orange);background:var(--ssip-orange-tint)}
+.rule.kill b{color:var(--ssip-orange)}
+.rule span{color:var(--ssip-muted);font-size:14px;line-height:1.5}
+.apps-row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font-family:var(--mono);font-size:12px;border:1px solid var(--ssip-line);padding:5px 10px 5px 8px;color:var(--ssip-text);
+  display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius);
+}
+.chip .ms{font-size:18px}
+
+/* primary CTA: square, orange, black text, lifts onto a blue offset shadow */
+.cta{
+  border:0;border-radius:0;padding:14px 24px;font-family:var(--mono);font-weight:500;font-size:16px;line-height:24px;
+  background:var(--ssip-orange);color:var(--ssip-black);display:inline-flex;gap:12px;align-items:center;
+  transition:transform .14s ease, box-shadow .14s ease, background-color .14s ease;
+}
+.cta:hover{background:var(--ssip-orange-hover);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ssip-accent)}
+.cta:active{background:var(--ssip-orange-press);color:var(--ssip-white);transform:none;box-shadow:none}
+.cta .g{opacity:.7}
+/* secondary: surface fill, hairline border, same cyan lift on hover */
+.cta.secondary{background:var(--ssip-surface);color:var(--ssip-text);border:1px solid var(--ssip-line)}
+.cta.secondary:hover{background:var(--ssip-surface);border-color:var(--ssip-accent)}
+.cta.secondary:active{background:var(--ssip-card);color:var(--ssip-text)}
+.start .cta{align-self:center}
+.ghost-link{font-family:var(--mono);font-size:15px;color:var(--ssip-text);text-underline-offset:5px;text-decoration-color:var(--ssip-orange)}
+
+/* ---------- Game ---------- */
+.game{width:100%}
+.stage{position:relative;width:min(100%,440px);aspect-ratio:5/7;max-height:min(66vh,640px)}
+@media (min-width:900px) and (min-height:800px){.stage{width:520px;max-height:68vh}}
+.card{
+  position:absolute;inset:0;perspective:1400px;touch-action:none;user-select:none;-webkit-user-select:none;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s ease;
+}
+.card.dragging{transition:none}
+.card.under{pointer-events:none}
+.card.under-1{transform:translate(-14px,8px) rotate(-5deg) scale(.97);opacity:.75}
+.card.under-2{transform:translate(16px,12px) rotate(6deg) scale(.94);opacity:.45}
+.inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.3,.7,.2,1)}
+.card.flipped .inner{transform:rotateY(180deg)}
+/* swap faces at the midpoint as well: gradient-clipped glyphs get their own layers and can ignore backface-visibility */
+.front,.back{transition:visibility 0s linear .27s}
+.back{visibility:hidden}
+.card.flipped .back{visibility:visible}
+.card.flipped .front{visibility:hidden}
+.face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:var(--radius);padding:clamp(22px,4vw,34px);display:flex;flex-direction:column;gap:15px;overflow:hidden;
+}
+.front{background:var(--ssip-card);border:1px solid var(--ssip-accent);cursor:grab}
+.card.dragging .front{cursor:grabbing}
+.front .row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.front .num{font-family:var(--mono);font-size:12px;color:var(--ssip-accent)}
+.front h2{
+  font-family:var(--mono);font-weight:500;letter-spacing:-.035em;line-height:1.2;color:var(--ssip-white);
+  font-size:clamp(20px,min(6.2vw,3.4vh),32px);margin:auto 0 0;text-wrap:balance;
+}
+.front .hint{font-family:var(--mono);font-size:12px;color:var(--ssip-muted);display:flex;justify-content:space-between}
+.stamp{
+  position:absolute;top:26px;font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.1em;
+  padding:4px 12px;border:2px solid currentColor;opacity:0;pointer-events:none;background:var(--ssip-black);
+}
+.stamp.kill{right:22px;color:var(--ssip-orange);transform:rotate(10deg)}
+.stamp.keep{left:22px;color:var(--ssip-muted);transform:rotate(-10deg)}
+
+.back{background:var(--ssip-orange);color:var(--ssip-black);transform:rotateY(180deg)}
+.back .killed{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.back .killed{gap:10px}
+/* same header as the front: icon tile top-left, counter top-right, topic eyebrow under it */
+.face .row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.back .num{font-family:var(--mono);font-size:12px;color:var(--ssip-black)}
+.back .eyebrow{color:var(--ssip-black)}
+.back .eyebrow::before{color:var(--ssip-black)}
+.back .mini-logo{height:22px;width:auto;display:block;--logo-strategy:#ffffff;--logo-si:#ffffff}
+.back .app-name{font-family:var(--mono);font-weight:500;letter-spacing:-.04em;line-height:1.05;font-size:clamp(26px,min(8.2vw,4.6vh),44px);margin:auto 0 0}
+.back p.fix{margin:0;font-family:var(--mono);font-weight:500;letter-spacing:-.035em;font-size:clamp(20px,min(6.2vw,3.4vh),32px);line-height:1.2;text-wrap:balance}
+
+.controls{display:flex;justify-content:center;align-items:center;min-height:96px}
+.choice{display:flex;gap:28px;justify-content:center;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;align-items:center;gap:8px}
+.round{
+  width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+  background:var(--ssip-surface);border:1px solid var(--ssip-line);color:var(--ssip-text);
+  transition:transform .14s ease, border-color .14s ease;
+}
+.round .ms{font-size:28px}
+.round:hover{border-color:var(--ssip-accent)}
+.round:active{transform:scale(.93)}
+.round.kill{background:var(--ssip-orange);color:var(--ssip-black);border-color:var(--ssip-orange)}
+.ctl-label{font-family:var(--mono);font-size:12px;color:var(--ssip-muted);letter-spacing:.08em;line-height:1}
+.ctl-label.l{color:var(--ssip-orange)}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);z-index:5;
+  background:var(--ssip-surface);border:1px solid var(--ssip-line);border-radius:var(--radius);padding:10px 16px;
+  font-family:var(--mono);font-size:14px;color:var(--ssip-text);
+  opacity:0;transition:opacity .15s ease, transform .15s ease;pointer-events:none;white-space:nowrap;max-width:calc(100% - 32px);
+  overflow:hidden;text-overflow:ellipsis;
+}
+.toast::before{content:"> ";color:var(--ssip-accent)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- Result ---------- */
+.result > *{flex-shrink:0}
+.result{max-width:520px;margin:0 auto;width:100%;align-items:center;text-align:center;overflow-y:auto;justify-content:flex-start;gap:20px}
+.result .sub{color:#b5b6bc;margin:0;font-size:15px;line-height:1.65;max-width:44ch}
+
+/* persona: the one solid cyan takeaway card, black text */
+.persona{
+  width:100%;background:var(--ssip-accent);color:var(--ssip-black);border-radius:var(--radius);
+  padding:20px 20px 0;display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;
+  animation:pop .5s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes pop{from{transform:translateY(16px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+.persona-top{width:100%;display:flex;justify-content:space-between;font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.08em}
+.persona-glyph{width:72px;height:72px;border-radius:50%;background:var(--ssip-black);color:var(--ssip-accent);display:grid;place-items:center;margin-top:6px}
+.persona-glyph .ms{font-size:40px}
+.you{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+.persona h2{font-family:var(--mono);font-weight:500;letter-spacing:-.04em;font-size:clamp(28px,7.5vw,38px);line-height:1.1;margin:0;text-wrap:balance}
+.persona p{margin:0;font-size:16px;line-height:1.55;max-width:34ch;font-weight:500}
+.pstats{width:calc(100% + 40px);margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(0,0,0,.25)}
+.pstats div{padding:12px 6px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pstats div + div{border-left:1px solid rgba(0,0,0,.25)}
+.pstats b{font-family:var(--mono);font-weight:500;font-size:18px;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.pstats span{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.sig{font-family:var(--mono);font-weight:500;font-size:clamp(19px,5vw,24px);letter-spacing:-.03em;line-height:1.3;color:var(--ssip-white);margin:4px 0 0;text-wrap:balance}
+.sig .o{color:var(--ssip-orange)}
+
+.platform{display:flex;flex-direction:column;gap:8px;width:100%}
+.stack{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.app-tile{
+  border-radius:var(--radius);padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--ssip-surface);border:1px solid var(--ssip-line);min-width:0;
+  transform:translateY(10px);opacity:0;animation:rise .4s ease forwards;
+}
+.app-tile .tile-icon{width:36px;height:36px;border-width:2px}
+.app-tile .tile-icon .ms{font-size:20px}
+.app-tile b{font-family:var(--mono);font-weight:500;font-size:11px;line-height:1.2;color:var(--ssip-text)}
+.app-tile .n{font-family:var(--mono);font-size:10px;color:var(--ssip-muted)}
+.app-tile.off{opacity:0;filter:grayscale(1)}
+.app-tile.off.in{opacity:.45}
+.app-tile.on{border-color:var(--ssip-accent);background:var(--ssip-card)}
+.app-tile.on .n{color:var(--ssip-accent)}
+@keyframes rise{to{transform:none;opacity:1}}
+.actions{display:flex;flex-direction:column;gap:16px;align-items:center;padding-bottom:8px}
+
+/* reveal */
+.reveal{gap:18px}
+.term{font-family:var(--mono);font-size:15px;line-height:1.5;color:var(--ssip-text);display:flex;flex-direction:column;gap:10px;min-width:min(100%,290px)}
+.term div{opacity:0;transform:translateY(4px);animation:line .2s ease forwards}
+.term div::before{content:"> ";color:var(--ssip-accent)}
+.term div.ok{color:var(--ssip-accent)}
+.term .big{font-size:clamp(22px,6vw,28px);color:var(--ssip-white);letter-spacing:-.03em}
+.term .big::before{content:">_ ";color:var(--ssip-orange)}
+@keyframes line{to{opacity:1;transform:none}}
+
+@media (max-height:700px){
+  .face{padding:18px;gap:10px}
+  .face .tile-icon{width:44px;height:44px}
+  .face .tile-icon .ms{font-size:24px}
+  .game{gap:14px;padding-block:8px 12px}
+  .controls{min-height:84px}
+  .round{width:56px;height:56px}
+  .hero{font-size:clamp(38px,9vw,72px)}
+  .rules{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  .cursor{animation:none}
+}
+</style>
+</head>
+<body>
+
+
+<div class="streak" aria-hidden="true"></div>
+<div class="app">
+  <header class="top">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ssi-logo" viewBox="0 0 774 211">
+<path d="M703.979 45.582C701.035 43.19 698.091 41.442 695.147 40.338C692.203 39.142 689.351 38.544 686.591 38.544C683.095 38.544 680.243 39.372 678.035 41.028C675.827 42.684 674.723 44.846 674.723 47.514C674.723 49.354 675.275 50.872 676.379 52.068C677.483 53.264 678.909 54.322 680.657 55.242C682.497 56.07 684.521 56.806 686.729 57.45C689.029 58.094 691.283 58.784 693.491 59.52C702.323 62.464 708.763 66.42 712.811 71.388C716.951 76.264 719.021 82.658 719.021 90.57C719.021 95.906 718.101 100.736 716.261 105.06C714.513 109.384 711.891 113.11 708.395 116.238C704.991 119.274 700.759 121.62 695.699 123.276C690.731 125.024 685.073 125.898 678.725 125.898C665.569 125.898 653.379 121.988 642.155 114.168L653.747 92.364C657.795 95.952 661.797 98.62 665.753 100.368C669.709 102.116 673.619 102.99 677.483 102.99C681.899 102.99 685.165 101.978 687.281 99.954C689.489 97.93 690.593 95.63 690.593 93.054C690.593 91.49 690.317 90.156 689.765 89.052C689.213 87.856 688.293 86.798 687.005 85.878C685.717 84.866 684.015 83.946 681.899 83.118C679.875 82.29 677.391 81.37 674.447 80.358C670.951 79.254 667.501 78.058 664.097 76.77C660.785 75.39 657.795 73.596 655.127 71.388C652.551 69.18 650.435 66.42 648.779 63.108C647.215 59.704 646.433 55.426 646.433 50.274C646.433 45.122 647.261 40.476 648.917 36.336C650.665 32.104 653.057 28.516 656.093 25.572C659.221 22.536 662.993 20.19 667.409 18.534C671.917 16.878 676.931 16.05 682.451 16.05C687.603 16.05 692.985 16.786 698.597 18.258C704.209 19.638 709.591 21.708 714.743 24.468L703.979 45.582ZM763.11 18.948V123H736.062V18.948H763.11Z" style="fill:var(--logo-si,#ffffff)"></path>
+<path d="M60.1877 85.33C53.4628 82.7246 44.9727 81.548 40.1812 76.0853C36.8188 72.2193 37.9956 65.4118 42.1146 62.3863C47.3264 58.1842 55.6484 58.6884 62.2052 61.4618C65.6517 62.8906 69.0982 65.0757 72.5447 68.0172L85.1538 41.7958C79.1015 38.35 72.7969 35.7447 66.2401 33.9798C49.0076 29.1894 29.0851 30.1138 16.476 43.0564C5.21179 54.0661 2.01746 75.497 7.90173 89.6162C11.5164 97.7683 17.8209 103.147 25.8067 106.593C32.1954 109.366 40.6015 111.972 46.6539 114.577C52.4541 116.93 56.9934 120.46 56.7412 126.931C56.489 134.831 50.0163 139.538 41.358 139.285C36.8187 139.285 32.2794 138.193 27.6561 136.008C23.0327 133.823 18.3253 130.545 13.6179 126.091L0 153.153C13.1976 162.817 27.488 167.692 42.8711 167.692C56.1528 167.692 68.5938 164.162 77.7565 155.59C92.0468 142.647 94.4006 114.661 82.9683 99.8694C78.1768 93.7343 70.6113 88.8598 60.1877 85.2459V85.33ZM584.308 123.654C576.575 107.853 568.841 91.9694 561.107 76.1693C542.026 76.1693 522.944 76.1693 503.862 76.2534V87.8513C497.137 80.1193 488.899 76.1693 479.148 76.1693C469.397 76.1693 467.547 77.3459 462.42 79.8672C457.292 82.3044 452.837 85.6661 449.138 89.9523C445.439 94.2385 442.497 99.2811 440.312 104.996C439.807 106.425 439.303 107.769 438.967 109.282C438.63 107.685 438.126 106.173 437.706 104.66C435.688 98.5247 432.662 93.3981 428.795 89.196C420.305 80.0353 408.537 76.1693 395.675 76.1693C382.73 76.1693 370.709 80.0353 362.051 89.0279C360.033 91.0449 358.268 93.3981 356.755 95.9194V76.2534H340.111V49.8639H310.858V76.2534H267.314V87.7672C260.505 80.1193 251.931 76.2534 241.591 76.2534C231.252 76.2534 229.823 77.43 224.779 79.9513C219.736 82.4725 215.364 85.7502 211.666 89.9523C209.396 92.5577 207.379 95.4992 205.697 98.6928V74.6566C204.52 74.4044 203.428 74.3204 202.503 74.3204H199.981C193.929 74.3204 188.633 75.7491 184.094 78.5225C179.554 81.2959 175.772 85.33 172.577 90.6247V76.2534H129.118V49.8639H99.8645V76.2534H90.1975V102.139H99.8645V166.852H129.118V102.139H143.24V166.852H172.493V126.427C172.493 118.191 174.174 111.972 177.621 107.685C180.983 103.399 186.111 101.298 192.92 101.298C199.729 101.298 200.149 101.97 203.428 103.399C203.26 103.903 203.091 104.324 202.839 104.828C200.822 110.459 199.813 116.426 199.813 122.729C199.813 129.032 200.822 135.672 203.007 141.387C207.042 152.312 214.608 161.305 225.115 166.095C230.159 168.448 235.707 169.625 241.76 169.625C252.435 169.625 260.925 165.423 267.146 157.103V166.852H296.567V102.139H310.69V166.852H339.943V102.139H353.477C353.225 102.811 352.888 103.399 352.72 104.156C350.535 110.039 349.442 116.594 349.442 123.906C349.442 131.217 350.535 137.352 352.804 143.067C355.074 148.782 358.268 153.657 362.471 157.775C366.674 161.893 371.634 165.087 377.434 167.272C383.234 169.457 389.707 170.633 396.684 170.633C419.549 170.633 433.839 160.632 439.555 140.462C439.723 140.966 439.891 141.471 440.059 141.891C442.077 147.27 444.851 151.976 448.466 155.842C456.031 163.91 466.371 168.196 477.719 168.196C485.2 168.196 491.673 166.515 497.725 162.145C499.743 160.716 501.844 158.951 503.946 156.766V165.171C503.946 171.642 502.265 176.769 499.07 180.382C495.792 183.996 491.085 185.845 484.948 185.845C478.812 185.845 473.096 182.904 470.994 177.105H437.958C438.799 181.895 440.564 186.349 443.17 190.384C463.681 222.992 529.08 215.848 532.443 173.743C533.031 169.877 533.283 165.507 533.283 160.548V88.0194L568.421 154.497L540.092 210.302H572.96C595.572 165.591 618.185 120.88 640.713 76.1693H606.921C599.439 91.9694 591.874 107.853 584.392 123.654H584.308ZM266.474 130.713C263.615 137.773 256.806 142.983 249.073 142.899C238.229 143.151 229.823 133.234 230.159 122.729C229.991 112.308 238.481 102.811 249.073 103.063C262.691 102.727 271.853 118.779 266.474 130.797V130.713ZM385.252 100.037C388.11 97.5162 391.809 96.2555 396.348 96.2555C400.887 96.2555 404.334 97.5162 407.36 100.206C410.386 102.811 412.403 106.341 413.328 110.627H379.872C380.628 106.089 382.478 102.559 385.252 100.037ZM411.227 140.462C407.948 145.925 403.157 148.698 396.852 148.698C385 148.698 379.031 141.975 379.031 128.612H437.201C437.538 132.814 438.294 136.764 439.555 140.378H411.227V140.462ZM503.778 130.125C501.004 137.268 494.195 142.479 486.377 142.395C475.533 142.647 467.127 132.73 467.463 122.225C467.295 111.888 476.038 102.391 486.377 102.391C496.969 102.391 505.543 111.972 505.291 122.393C505.291 125.25 504.787 127.772 503.778 130.209V130.125Z" style="fill:var(--logo-strategy,#FA660F)"></path>
+    </symbol></svg>
+    <button class="home" id="homeBtn" type="button" aria-label="Strategy SI, back to start"><svg class="logo" viewBox="0 0 774 211" aria-hidden="true"><use href="#ssi-logo"/></svg></button>
+    <div class="progress" id="progress" hidden>
+      <span id="count">01 / 09</span>
+      <div class="bar"><i id="bar"></i></div>
+    </div>  </header>
+
+  <!-- Screen 1: start -->
+  <section class="screen start" id="s-start">
+    <div class="eyebrow">A 60-second game</div>
+    <h1 class="hero"><span class="prompt">&gt;_</span>Kill the<br><span class="o">busywork</span><span class="cursor" aria-hidden="true"></span></h1>
+    <p class="lede">Every company runs on workarounds nobody chose. Swipe through them and see which Strategy app makes each one disappear, <b>all on one platform</b>.</p>
+    <div class="rules">
+      <div class="rule kill"><b>&larr; Kill</b><span>Swipe left. It goes, and you see what replaces it.</span></div>
+      <div class="rule"><b>Keep &rarr;</b><span>Swipe right if you secretly love it.</span></div>
+    </div>
+    <div class="apps-row" id="apps-row"></div>
+    <button class="cta" id="startBtn"><span class="g">&#x276F;</span>Start swiping<span class="g">&#x21B5;</span></button>
+  </section>
+
+  <!-- Screen 2: swipe -->
+  <section class="screen game" id="s-game" hidden>
+    <div class="stage" id="stage"></div>
+    <div class="controls" id="controls">
+      <div class="choice" id="choice">
+      <div class="ctl">
+        <button class="round kill" id="killBtn" aria-label="Kill this busywork"><span class="ms">close</span></button>
+        <span class="ctl-label l" aria-hidden="true">KILL</span>
+      </div>
+      <div class="ctl">
+        <button class="round" id="keepBtn" aria-label="Keep this busywork"><span class="ms">favorite</span></button>
+        <span class="ctl-label" aria-hidden="true">KEEP</span>
+      </div>
+      </div>
+      <button class="cta secondary" id="nextBtn" type="button" hidden><span class="g">&#x276F;</span><span id="nextLabel">Next</span><span class="g">&#x21B5;</span></button>
+    </div>
+  </section>
+
+  <!-- Between 2 and 3: short terminal "analysis" before the persona reveal -->
+  <section class="screen reveal" id="s-reveal" hidden>
+    <div class="eyebrow" id="revealDone">9 of 9 done</div>
+    <div class="term" id="term" aria-live="polite"></div>
+  </section>
+
+  <!-- Screen 3: result -->
+  <section class="screen result" id="s-result" hidden>
+    <div class="persona" id="persona">
+      <div class="persona-top"><span id="pid">PERSONA_01</span><span id="pdate"></span></div>
+      <div class="persona-glyph"><span class="ms" id="pglyph" aria-hidden="true">bolt</span></div>
+      <div class="you">You are</div>
+      <h2 id="pname">The Pipeline Purist</h2>
+      <p id="pdesc"></p>
+      <div class="pstats">
+        <div><b id="statKilled">0/9</b><span>Killed</span></div>
+        <div><b id="statTime">0s</b><span>Time</span></div>
+        <div><b id="statApp">Sales</b><span>Your app</span></div>
+      </div>
+    </div>
+    <p class="sig" id="sig"></p>
+    <p class="sub" id="resultSub"></p>
+    <div class="platform">
+      <div class="stack" id="stackTiles"></div>
+    </div>
+    <div class="actions">
+      <button class="cta" id="againBtn"><span class="g">&#x276F;</span>Play again<span class="g">&#x21B5;</span></button>
+      <a class="ghost-link" href="https://software.strategy.com/ssis" target="_blank" rel="noopener">See all Strategy SI apps &rarr;</a>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  // Material Symbols Outlined glyph names
+  const APPS = {
+    sales:{name:'Strategy Sales', short:'Sales', icon:'trending_up'},
+    service:{name:'Strategy Service', short:'Service', icon:'support_agent'},
+    marketing:{name:'Strategy Marketing', short:'Marketing', icon:'campaign'},
+    people:{name:'Strategy People', short:'People', icon:'group'}
+  };
+  const ms = (name, cls='') => `<span class="ms ${cls}" aria-hidden="true">${name}</span>`;
+
+  // Pain on the front, capability on the back. Capabilities follow the SI Software product pages.
+  const POOL = [
+    {app:'sales', pain:'Retyping meeting notes into the CRM. Again.', fix:'Notes, next steps and record updates are drafted from the meeting. You confirm instead of retyping.'},
+    {app:'sales', pain:'The forecast on the slide doesn’t match the number in the system.', fix:'Forecasts roll up from live records through the same definitions, so the number in the review is the number in the record.'},
+    {app:'sales', pain:'Digging through four systems before a renewal call.', fix:'Orders, support history, usage and marketing activity sit next to the deal, on one screen.'},
+    {app:'service', pain:'Seven tabs open just to find the customer’s contract.', fix:'Every case opens with the account, the entitlement and the recent activity already there.'},
+    {app:'service', pain:'One tool for IT tickets, one for HR, one for customers.', fix:'One service desk for customers and employees, on the same workflow, permissions and audit trail.'},
+    {app:'service', pain:'Copy-pasting the same answer from a 2019 PDF.', fix:'AI agents draft answers that cite the policies and runbooks your company actually published.'},
+    {app:'marketing', pain:'Researching prospects by hand, one browser tab at a time.', fix:'AI reads the triggers that matter (funding, hiring, launches), writes the outreach and books the meeting.'},
+    {app:'marketing', pain:'Filing three tickets to launch one landing page.', fix:'A campaign builds its own page and form, writing straight to the record. No CMS ticket.'},
+    {app:'marketing', pain:'Exporting a CSV to build a segment that’s outdated by Friday.', fix:'Describe the audience in plain words and the segment resolves against live records.'},
+    {app:'people', pain:'Emailing HR to ask how many vacation days you have left.', fix:'Ask in plain language. The answer comes from your live record and your own policy documents.'},
+    {app:'people', pain:'HR’s headcount and Finance’s headcount never match.', fix:'Headcount, cost and attrition use the same definitions as finance reporting, so the numbers agree.'},
+    {app:'people', pain:'The new hire is handed between three systems before day one.', fix:'Openings, candidates, offers and the first week of onboarding run as one process.'}
+  ];
+  const KEEP_LINES = [
+    'Kept. Bold choice.',
+    'Kept. Someone in Finance just sighed.',
+    'Kept. Tradition is important.',
+    'Kept. It’s grown on you.',
+    'Kept. We won’t tell anyone.'
+  ];
+
+  // Personas: picked from what the player killed. Signature lines are the SSIS brand book's exact lines.
+  const PERSONAS = {
+    sales:{name:'The Pipeline Purist', glyph:'rocket_launch', app:'sales',
+      desc:'You have no patience for admin between you and the deal. You want the whole customer on one screen and a forecast that matches the record.',
+      sig:'One platform. Every app. <span class="o">All yours.</span>'},
+    service:{name:'The Context Hunter', glyph:'manage_search', app:'service',
+      desc:'You hate making a customer wait while you look things up. Every ticket should open already knowing the account, the contract and the history.',
+      sig:'One platform. Every app. <span class="o">All yours.</span>'},
+    marketing:{name:'The Funnel Automator', glyph:'bolt', app:'marketing',
+      desc:'You would rather run one sharp campaign than file three tickets. Research, outreach and the booked meeting should be one flow.',
+      sig:'One platform. Every app. <span class="o">All yours.</span>'},
+    people:{name:'The People Champion', glyph:'diversity_3', app:'people',
+      desc:'You think employees deserve answers, not inboxes. Hiring, onboarding and every request should run on one record.',
+      sig:'One platform. Every app. <span class="o">All yours.</span>'},
+    platform:{name:'The Platform Thinker', glyph:'hub', app:null,
+      desc:'You killed busywork in every department. Four better tools won’t fix that. One governed platform under all of them will.',
+      sig:'The age of renting software <span class="o">is over.</span>'},
+    slayer:{name:'The Legacy Slayer', glyph:'local_fire_department', app:null,
+      desc:'Nothing survived. You are ready to replace the stack, not patch it. Every app on one platform, all of it yours.',
+      sig:'Stop renting software. <span class="o">Own it.</span>'},
+    archivist:{name:'The Archivist', glyph:'inventory_2', app:null,
+      desc:'You kept most of it. Fair: some rules are real policy. Start with the one workaround that slows you down most.',
+      sig:'Software generated for your business, <span class="o">and owned by it.</span>'}
+  };
+  const PERSONA_IDS = ['sales','service','marketing','people','platform','slayer','archivist'];
+
+  function pickPersona(killed, total){
+    if (killed.length === total) return 'slayer';
+    if (killed.length / total <= .34) return 'archivist';
+    const depts = ['sales','service','marketing','people'];
+    const counts = depts.map(d => killed.filter(r => r.card.app === d).length);
+    if (counts.every(n => n >= 1) && Math.max(...counts) - Math.min(...counts) <= 1 && killed.length / total >= .65) return 'platform';
+    const max = Math.max(...counts);
+    // ties go to the department the player killed first
+    const first = killed.find(r => depts.includes(r.card.app) && counts[depts.indexOf(r.card.app)] === max);
+    return first ? first.card.app : 'archivist';
+  }
+
+  const $ = id => document.getElementById(id);
+  const screens = {start:$('s-start'), game:$('s-game'), reveal:$('s-reveal'), result:$('s-result')};
+  let deck = [], idx = 0, results = [], busy = false, startedAt = 0;
+  const pad = n => String(n).padStart(2,'0');
+
+  $('apps-row').innerHTML = Object.keys(APPS).map(k => `<span class="chip">${ms(APPS[k].icon,'grad')}${APPS[k].short}</span>`).join('');
+
+  function show(name){
+    for (const k in screens) screens[k].hidden = k !== name;
+    $('progress').hidden = name !== 'game';
+  }
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+  function buildDeck(){
+    const picks = [];
+    ['sales','service','marketing','people'].forEach(app => {
+      picks.push(...shuffle(POOL.filter(c => c.app === app)).slice(0,2));
+    });
+    // one extra card from the rest of the pool keeps the deck at nine
+    const rest = POOL.filter(c => !picks.includes(c));
+    picks.push(shuffle(rest)[0]);
+    return shuffle(picks);
+  }
+
+  function cardHTML(c, n, total){
+    const a = APPS[c.app];
+    return `
+      <div class="inner">
+        <div class="face front">
+          <div class="row">
+            <div class="tile-icon">${ms(a.icon,'grad')}</div>
+            <span class="num">${pad(n)} / ${pad(total)}</span>
+          </div>
+          <div class="eyebrow">${a.short}</div>
+          <h2>${c.pain}</h2>
+          <div class="hint"><span>&larr; kill</span><span>keep &rarr;</span></div>
+          <div class="stamp kill">KILL</div>
+          <div class="stamp keep">KEEP</div>
+        </div>
+        <div class="face back">
+          <div class="row">
+            <div class="tile-icon">${ms(a.icon,'grad')}</div>
+            <span class="num">${pad(n)} / ${pad(total)}</span>
+          </div>
+          <div class="killed"><span>Killed by</span><svg class="mini-logo" viewBox="0 0 774 211" role="img" aria-label="Strategy SI"><use href="#ssi-logo"/></svg></div>
+          <h3 class="app-name">${a.name.replace('Strategy ','')}</h3>
+          <p class="fix">${c.fix}</p>
+        </div>
+      </div>`;
+  }
+
+  function render(){
+    const stage = $('stage');
+    stage.innerHTML = '';
+    const total = deck.length;
+    $('count').textContent = `${pad(Math.min(idx+1,total))} / ${pad(total)}`;
+    $('bar').style.width = `${(idx/total)*100}%`;
+    // up to two cards peek out behind the top one, fanned left and right
+    for (let k = 2; k >= 1; k--){
+      if (idx + k >= total) continue;
+      const under = document.createElement('div');
+      under.className = `card under under-${k}`;
+      under.innerHTML = cardHTML(deck[idx+k], idx+k+1, total);
+      stage.appendChild(under);
+    }
+    const el = document.createElement('div');
+    el.className = 'card top';
+    el.innerHTML = cardHTML(deck[idx], idx+1, total);
+    stage.appendChild(el);
+    attachDrag(el);
+    $('choice').hidden = false;
+    $('nextBtn').hidden = true;
+    busy = false;
+  }
+
+  function attachDrag(el){
+    let sx=0, sy=0, dx=0, dragging=false;
+    const front = el.querySelector('.front');
+    const sKill = el.querySelector('.stamp.kill'), sKeep = el.querySelector('.stamp.keep');
+    front.addEventListener('pointerdown', e => {
+      if (busy) return;
+      dragging = true; sx = e.clientX; sy = e.clientY; dx = 0;
+      el.classList.add('dragging'); front.setPointerCapture(e.pointerId);
+    });
+    front.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      dx = e.clientX - sx; const dy = (e.clientY - sy) * .3;
+      el.style.transform = `translate(${dx}px,${dy}px) rotate(${dx/18}deg)`;
+      sKill.style.opacity = Math.min(Math.max(-dx/90,0),1);
+      sKeep.style.opacity = Math.min(Math.max(dx/90,0),1);
+    });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false; el.classList.remove('dragging');
+      sKill.style.opacity = 0; sKeep.style.opacity = 0;
+      if (dx < -90) decide('kill');
+      else if (dx > 90) decide('keep');
+      else el.style.transform = '';
+    };
+    front.addEventListener('pointerup', end);
+    front.addEventListener('pointercancel', end);
+  }
+
+  function decide(choice){
+    if (busy || screens.game.hidden) return;
+    busy = true;
+    const el = document.querySelector('.card.top');
+    results.push({card:deck[idx], choice});
+    if (choice === 'kill'){
+      el.style.transform = '';
+      el.querySelector('.stamp.kill').style.opacity = 1;
+      $('choice').hidden = true;
+      setTimeout(() => {
+        el.classList.add('flipped');
+        $('nextLabel').textContent = idx === deck.length - 1 ? 'See my persona' : 'Next';
+        $('nextBtn').hidden = false;
+        $('nextBtn').focus({preventScroll:true});
+      }, 260);
+    } else {
+      el.style.transform = `translate(${window.innerWidth}px,40px) rotate(24deg)`;
+      el.style.opacity = 0;
+      toast(KEEP_LINES[Math.floor(Math.random()*KEEP_LINES.length)]);
+      setTimeout(advance, 380);
+    }
+  }
+
+  function advance(){
+    idx++;
+    if (idx >= deck.length) return finish();
+    render();
+  }
+
+  let toastTimer;
+  function toast(msg){
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+  }
+
+  function finish(){
+    $('bar').style.width = '100%';
+    const killed = results.filter(r => r.choice === 'kill');
+    const kept = results.filter(r => r.choice === 'keep');
+    const total = results.length;
+    const secs = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+    const pKey = pickPersona(killed, total);
+    const p = PERSONAS[pKey];
+    const d = new Date();
+    $('pid').textContent = `PERSONA_${pad(PERSONA_IDS.indexOf(pKey) + 1)}`;
+    $('pdate').textContent = `${pad(d.getDate())}_${pad(d.getMonth()+1)}_${d.getFullYear()}`;
+    $('pglyph').textContent = p.glyph;
+    $('pname').textContent = p.name;
+    $('pdesc').textContent = p.desc;
+    $('statKilled').textContent = `${killed.length}/${total}`;
+    $('statTime').textContent = `${secs}s`;
+    // The Archivist gets the first app they killed; the platform personas get SIP
+    const topApp = pKey === 'archivist' && killed.length ? killed[0].card.app : null;
+    $('statApp').textContent = p.app ? APPS[p.app].short : topApp ? APPS[topApp].short : 'SIP';
+    $('sig').innerHTML = p.sig;
+    const persona = $('persona');
+    persona.style.animation = 'none'; void persona.offsetWidth; persona.style.animation = '';
+
+    const apps = new Set(killed.map(r => r.card.app));
+    $('resultSub').textContent = apps.size
+      ? `You unlocked ${apps.size} of 4 Strategy apps. They all run on SIP and share one record, one set of definitions and one governance layer, so nothing has to sync.`
+      : 'You kept everything. The Strategy apps below are still here when you’re ready.';
+
+    $('stackTiles').innerHTML = Object.keys(APPS).map((k,i) => {
+      const n = killed.filter(r => r.card.app === k).length;
+      return `<div class="app-tile ${n ? 'on' : 'off'}" style="animation-delay:${i*80}ms">
+        <div class="tile-icon">${ms(APPS[k].icon,'grad')}</div>
+        <b>${APPS[k].short}</b><span class="n">${n ? n + ' killed' : 'locked'}</span>
+      </div>`;
+    }).join('');
+    // locked tiles settle at reduced opacity once their rise finishes
+    setTimeout(() => document.querySelectorAll('.app-tile.off').forEach(t => { t.style.animation = 'none'; t.style.transform = 'none'; t.classList.add('in'); }), 900);
+
+
+    reveal(killed.length, kept.length, total);
+  }
+
+  function reveal(k, kept, total){
+    $('revealDone').textContent = `${total} of ${total} done`;
+    const lines = [
+      {t:`Reading ${total} decisions`},
+      {t:`Killed ${k} \u00b7 Kept ${kept}`},
+      {t:'Matching you to Strategy apps'},
+      {t:'Persona found', c:'ok'},
+      {t:'Who are you?', c:'big'}
+    ];
+    const fast = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const step = fast ? 120 : 420;
+    const term = $('term');
+    term.innerHTML = '';
+    show('reveal');
+    lines.forEach((l, i) => setTimeout(() => {
+      const d = document.createElement('div');
+      if (l.c) d.className = l.c;
+      d.textContent = l.t;
+      term.appendChild(d);
+    }, i * step));
+    setTimeout(() => { if (!screens.reveal.hidden) show('result'); }, lines.length * step + (fast ? 200 : 700));
+  }
+
+  function start(){
+    deck = buildDeck(); idx = 0; results = []; startedAt = Date.now();
+    show('game'); render();
+  }
+
+  $('startBtn').addEventListener('click', start);
+  $('homeBtn').addEventListener('click', () => { busy = false; show('start'); });
+  $('againBtn').addEventListener('click', start);
+  $('killBtn').addEventListener('click', () => decide('kill'));
+  $('keepBtn').addEventListener('click', () => decide('keep'));
+  $('nextBtn').addEventListener('click', advance);
+
+  document.addEventListener('keydown', e => {
+    if (!screens.game.hidden){
+      const flipped = document.querySelector('.card.top.flipped');
+      if (flipped && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight')){ e.preventDefault(); advance(); return; }
+      if (e.key === 'ArrowLeft') decide('kill');
+      if (e.key === 'ArrowRight') decide('keep');
+    } else if (!screens.start.hidden && e.key === 'Enter' && document.activeElement === document.body){ start(); }
+  });
+})();
+</script>
+
+</body>
+</html>
